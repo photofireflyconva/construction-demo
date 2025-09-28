@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>建築原価管理システム | 建築業界向けコスト管理ツール</title>
+    
+    <!-- 外部ライブラリの読み込み -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <i class="fas fa-building"></i>
+                建築原価管理システム
+            </h1>
+            <nav class="nav">
+                <button class="nav-btn active" data-tab="dashboard">
+                    <i class="fas fa-chart-dashboard"></i>ダッシュボード
+                </button>
+                <button class="nav-btn" data-tab="projects">
+                    <i class="fas fa-project-diagram"></i>工事管理
+                </button>
+                <button class="nav-btn" data-tab="costs">
+                    <i class="fas fa-calculator"></i>原価入力
+                </button>
+                <button class="nav-btn" data-tab="reports">
+                    <i class="fas fa-chart-line"></i>レポート
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="main">
+        <div class="container">
+            
+            <!-- ダッシュボードタブ -->
+            <section id="dashboard" class="tab-content active">
+                <h2 class="page-title">
+                    <i class="fas fa-chart-dashboard"></i>ダッシュボード
+                </h2>
+                
+                <!-- 概要カード -->
+                <div class="summary-cards">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-project-diagram"></i>進行中工事</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="metric">
+                                <span class="number" id="active-projects">0</span>
+                                <span class="unit">件</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-yen-sign"></i>総契約金額</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="metric">
+                                <span class="number" id="total-contract">0</span>
+                                <span class="unit">万円</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-coins"></i>総原価</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="metric">
+                                <span class="number" id="total-cost">0</span>
+                                <span class="unit">万円</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-percentage"></i>総利益率</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="metric">
+                                <span class="number" id="profit-rate">0</span>
+                                <span class="unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- チャートエリア -->
+                <div class="chart-section">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-pie"></i>原価構成比</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="costChart" style="height: 400px;"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i>月別売上・原価推移</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="trendChart" style="height: 400px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 工事管理タブ -->
+            <section id="projects" class="tab-content">
+                <h2 class="page-title">
+                    <i class="fas fa-project-diagram"></i>工事管理
+                </h2>
+                
+                <div class="action-bar">
+                    <button class="btn btn-primary" id="add-project-btn">
+                        <i class="fas fa-plus"></i>新規工事登録
+                    </button>
+                    <div class="search-box">
+                        <input type="text" id="project-search" placeholder="工事名・発注者で検索">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="data-table" id="projects-table">
+                                <thead>
+                                    <tr>
+                                        <th>工事名</th>
+                                        <th>発注者</th>
+                                        <th>工事種別</th>
+                                        <th>契約金額</th>
+                                        <th>工期</th>
+                                        <th>状況</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- データは動的に読み込み -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 原価入力タブ -->
+            <section id="costs" class="tab-content">
+                <h2 class="page-title">
+                    <i class="fas fa-calculator"></i>原価入力
+                </h2>
+                
+                <div class="action-bar">
+                    <button class="btn btn-primary" id="add-cost-btn">
+                        <i class="fas fa-plus"></i>原価項目追加
+                    </button>
+                    <select id="cost-project-filter" class="filter-select">
+                        <option value="">全工事</option>
+                    </select>
+                    <select id="cost-category-filter" class="filter-select">
+                        <option value="">全分類</option>
+                        <option value="材料費">材料費</option>
+                        <option value="労務費">労務費</option>
+                        <option value="外注費">外注費</option>
+                        <option value="経費">経費</option>
+                    </select>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="data-table" id="costs-table">
+                                <thead>
+                                    <tr>
+                                        <th>工事名</th>
+                                        <th>分類</th>
+                                        <th>項目名</th>
+                                        <th>仕入先</th>
+                                        <th>数量</th>
+                                        <th>単位</th>
+                                        <th>単価</th>
+                                        <th>金額</th>
+                                        <th>日付</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- データは動的に読み込み -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- レポートタブ -->
+            <section id="reports" class="tab-content">
+                <h2 class="page-title">
+                    <i class="fas fa-chart-line"></i>レポート
+                </h2>
+                
+                <div class="action-bar">
+                    <select id="report-project" class="filter-select">
+                        <option value="">工事を選択</option>
+                    </select>
+                    <button class="btn btn-secondary" id="export-report-btn">
+                        <i class="fas fa-download"></i>エクスポート
+                    </button>
+                </div>
+                
+                <div class="report-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-bar"></i>工事別損益分析</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="project-analysis">
+                                <p class="no-data">工事を選択してください</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-list-alt"></i>原価明細</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>分類</th>
+                                            <th>予算</th>
+                                            <th>実績</th>
+                                            <th>差額</th>
+                                            <th>達成率</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- データは動的に読み込み -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- モーダルダイアログ -->
+    <!-- 工事登録モーダル -->
+    <div id="project-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="project-modal-title">新規工事登録</h3>
+                <button class="close-btn" id="close-project-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="project-form">
+                    <div class="form-group">
+                        <label for="project-name">工事名 <span class="required">*</span></label>
+                        <input type="text" id="project-name" name="project_name" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="client">発注者 <span class="required">*</span></label>
+                            <input type="text" id="client" name="client" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="project-type">工事種別</label>
+                            <select id="project-type" name="project_type">
+                                <option value="新築工事">新築工事</option>
+                                <option value="改修工事">改修工事</option>
+                                <option value="設備工事">設備工事</option>
+                                <option value="内装工事">内装工事</option>
+                                <option value="その他">その他</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contract-amount">契約金額（円） <span class="required">*</span></label>
+                        <input type="number" id="contract-amount" name="contract_amount" min="0" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="start-date">着工日</label>
+                            <input type="date" id="start-date" name="start_date">
+                        </div>
+                        <div class="form-group">
+                            <label for="end-date">竣工予定日</label>
+                            <input type="date" id="end-date" name="end_date">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="status">工事状況</label>
+                        <select id="status" name="status">
+                            <option value="計画中">計画中</option>
+                            <option value="進行中">進行中</option>
+                            <option value="完了">完了</option>
+                            <option value="中止">中止</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">備考・特記事項</label>
+                        <textarea id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-project">キャンセル</button>
+                <button type="submit" form="project-form" class="btn btn-primary" id="save-project">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 原価項目登録モーダル -->
+    <div id="cost-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="cost-modal-title">原価項目追加</h3>
+                <button class="close-btn" id="close-cost-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="cost-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cost-project">工事名 <span class="required">*</span></label>
+                            <select id="cost-project" name="project_id" required>
+                                <option value="">選択してください</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cost-category">分類 <span class="required">*</span></label>
+                            <select id="cost-category" name="category" required>
+                                <option value="">選択してください</option>
+                                <option value="材料費">材料費</option>
+                                <option value="労務費">労務費</option>
+                                <option value="外注費">外注費</option>
+                                <option value="経費">経費</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="item-name">項目名 <span class="required">*</span></label>
+                        <input type="text" id="item-name" name="item_name" placeholder="例：鉄骨材、作業員賃金、電気工事費" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="supplier">仕入先・外注先名</label>
+                        <input type="text" id="supplier" name="supplier">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quantity">数量 <span class="required">*</span></label>
+                            <input type="number" id="quantity" name="quantity" step="0.01" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="unit">単位</label>
+                            <input type="text" id="unit" name="unit" placeholder="例：kg、人日、式">
+                        </div>
+                        <div class="form-group">
+                            <label for="unit-price">単価（円） <span class="required">*</span></label>
+                            <input type="number" id="unit-price" name="unit_price" min="0" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cost-date">日付</label>
+                        <input type="date" id="cost-date" name="date">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">詳細・備考</label>
+                        <input type="text" id="description" name="description">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>金額（自動計算）</label>
+                        <div class="calculated-amount" id="calculated-amount">0 円</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-cost">キャンセル</button>
+                <button type="submit" form="cost-form" class="btn btn-primary" id="save-cost">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript読み込み -->
+    <script src="js/app.js"></script>
+</body>
+</html>
